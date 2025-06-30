@@ -1,4 +1,8 @@
+using AstoDimClient.ApiLibrary;
 using AstoDimClient.Properties;
+using System.Management;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AstoDimClient
 {
@@ -7,9 +11,42 @@ namespace AstoDimClient
         public frmClientMain()
         {
             InitializeComponent();
+            ApiHelper.InitializeClient();
         }
         string licenseKey;
-        private void btnActivateLicense_Click_1(object sender, EventArgs e)
+        string HWID;
+
+        static string GetMotherboardID()
+        {
+            string cpuId = GetWmiValue("Win32_Processor", "ProcessorId");
+            string boardId = GetWmiValue("Win32_BaseBoard", "SerialNumber");
+            string biosId = GetWmiValue("Win32_BIOS", "SerialNumber");
+
+            string combined = cpuId + boardId + biosId;
+
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(combined);
+                byte[] hash = sha.ComputeHash(bytes);
+                return BitConverter.ToString(hash).Replace("-", "");
+            }
+        }
+
+        private static string GetWmiValue(string className, string property)
+        {
+            try
+            {
+                var searcher = new ManagementObjectSearcher($"SELECT {property} FROM {className}");
+                foreach (var obj in searcher.Get())
+                {
+                    return obj[property]?.ToString()?.Trim();
+                }
+            }
+            catch { }
+            return "null";
+        }
+
+        private async void btnActivateLicense_Click_1(object sender, EventArgs e)
         {
             if (mskLicenseKey.MaskFull)
             {
@@ -17,15 +54,28 @@ namespace AstoDimClient
                 if (dialog == DialogResult.Yes)
                 {
                     licenseKey = mskLicenseKey.Text;
-                    lblLicenseKey.Text = licenseKey;
-                    label1.Visible = false;
-                    mskLicenseKey.Visible = false;
-                    btnActivateLicense.Visible = false;
-                    btnInjectBot.Visible = true;
-                    lblRemaining.Visible = true;
+                    HWID = GetMotherboardID();
+
                     //TODO: API Request
-                    MessageBox.Show("Lisans baþarýyla aktifleþtirildi!!", "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    btnHideKey.Visible = true;
+                    bool result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
+
+                    if (result)
+                    {
+                        MessageBox.Show("Lisans baþarýyla aktifleþtirildi!!", "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        btnHideKey.Visible = true;
+                        
+                        lblLicenseKey.Text = licenseKey;
+                        label1.Visible = false;
+                        mskLicenseKey.Visible = false;
+                        btnActivateLicense.Visible = false;
+                        btnInjectBot.Visible = true;
+                        lblRemaining.Visible = true;
+                    }
+                    else
+                    {
+                        mskLicenseKey.Clear();
+                        MessageBox.Show("Maalesef ki girdiðiniz lisans anahtarý geçersiz veya süresi dolmuþ olabilir.\nLütfen doðru bir lisans anahtarý girdiðinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             else

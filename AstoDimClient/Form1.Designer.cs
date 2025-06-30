@@ -226,7 +226,10 @@
             Controls.Add(label1);
             Controls.Add(mskLicenseKey);
             DoubleBuffered = true;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
             Name = "frmClientMain";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "AstoDim Client";
             ResumeLayout(false);
             PerformLayout();
