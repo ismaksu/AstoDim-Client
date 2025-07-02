@@ -57,13 +57,13 @@ namespace AstoDimClient
                     HWID = GetMotherboardID();
 
                     //TODO: API Request
-                    bool result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
+                    (bool status, string message) result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
 
-                    if (result)
+                    if (result.status)
                     {
-                        MessageBox.Show("Lisans baþarýyla aktifleþtirildi!!", "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(result.message, "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         btnHideKey.Visible = true;
-                        
+
                         lblLicenseKey.Text = licenseKey;
                         label1.Visible = false;
                         mskLicenseKey.Visible = false;
@@ -74,7 +74,7 @@ namespace AstoDimClient
                     else
                     {
                         mskLicenseKey.Clear();
-                        MessageBox.Show("Maalesef ki girdiðiniz lisans anahtarý geçersiz veya süresi dolmuþ olabilir.\nLütfen doðru bir lisans anahtarý girdiðinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(result.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -103,6 +103,11 @@ namespace AstoDimClient
                 lblLicenseKey.Text = licenseKey;
                 btnHideKey.BackgroundImage = Resources.no_see_visible_hidde_icon_187886;
             }
+        }
+
+        private void frmClientMain_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

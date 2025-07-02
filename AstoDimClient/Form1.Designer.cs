@@ -231,6 +231,7 @@
             Name = "frmClientMain";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "AstoDim Client";
+            Load += frmClientMain_Load;
             ResumeLayout(false);
             PerformLayout();
         }
