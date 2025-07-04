@@ -146,14 +146,14 @@
             // 
             // lblRemaining
             // 
-            lblRemaining.AutoSize = true;
             lblRemaining.Font = new Font("VCR OSD Mono", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lblRemaining.ForeColor = Color.FromArgb(162, 0, 0);
-            lblRemaining.Location = new Point(494, 407);
+            lblRemaining.Location = new Point(452, 405);
             lblRemaining.Name = "lblRemaining";
-            lblRemaining.Size = new Size(390, 19);
+            lblRemaining.Size = new Size(471, 19);
             lblRemaining.TabIndex = 14;
-            lblRemaining.Text = "Kalan Süre: 6 gün 22 saat 31 dakika";
+            lblRemaining.Text = "Lisansin kalan süresi: 30 gün";
+            lblRemaining.TextAlign = ContentAlignment.MiddleCenter;
             lblRemaining.Visible = false;
             // 
             // btnInjectBot

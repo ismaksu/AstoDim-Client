@@ -45,7 +45,7 @@ namespace AstoDimClient.ApiLibrary
             }   
             return (false, "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
         }
-        public static async Task<(bool isCorrect, bool isActivated, string message)> CheckLicense(string licenseKey)
+        public static async Task<(ApiKey? apiKey, string message)> CheckLicense(string licenseKey)
         {
             if (!String.IsNullOrEmpty(licenseKey))
             {
@@ -55,18 +55,28 @@ namespace AstoDimClient.ApiLibrary
                 {
                     using (HttpResponseMessage response = await ApiHelper.ApiClient.GetAsync(url))
                     {
-                        string result = await response.Content.ReadAsStringAsync();
-                        // First tuple bool: isSuccess, Second tuple bool: isActivated 
-                        (bool, bool) statusResult = JsonConvert.DeserializeObject<(bool, bool)>(result);
+                        var result = await response.Content.ReadAsStringAsync();
+                        var result1 = result.ToString();
+                        try
+                        {
+                            ApiKey? apiKey = JsonConvert.DeserializeObject<ApiKey>(result);
+                            return apiKey != null ?
+                                (apiKey, "Lisans anahtarı bulundu!.") :
+                                (apiKey, "Lisans anahtarı kontrolü başarısız oldu. Lütfen lisans anahtarınızı kontrol ediniz.");
+                        }
+                        catch (Exception)
+                        {
+                            return (null, "Maalesef ki lisanslama sunucuları tarafında bir hata oluştu. Lütfen tekrar deneyiniz.\nEğer sorun devam ederse lütfen lisans anahtarınızı aldığınız yerle iletişime geçiniz.");
+                        }
+                        
                     }
                 }
                 catch (Exception)
                 {
-
-                    throw;
+                    return (null, "Maalesef ki lisanslama sunucularına erişilemedi, lütfen internet bağlantınız olduğundan emin olunuz.");
                 }
             }
-            return (false, false, "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
+            return (null , "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
         }
     }
 }

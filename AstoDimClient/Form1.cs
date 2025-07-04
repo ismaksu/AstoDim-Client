@@ -48,35 +48,84 @@ namespace AstoDimClient
 
         private async void btnActivateLicense_Click_1(object sender, EventArgs e)
         {
+            licenseKey = mskLicenseKey.Text;
+            HWID = GetMotherboardID();
+
+
             if (mskLicenseKey.MaskFull)
             {
-                DialogResult dialog = MessageBox.Show("Lisansý aktifleþtirmek istediðinize emin misiniz?\nLisansý aktifleþtirmek abonelik süresini baþlatacaktýr.", "Uyarý!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (dialog == DialogResult.Yes)
+                (ApiKey? apiKey, string message) checkResult = await ApiProcessor.CheckLicense(licenseKey);
+                if (checkResult.apiKey is not null)
                 {
-                    licenseKey = mskLicenseKey.Text;
-                    HWID = GetMotherboardID();
-
-                    //TODO: API Request
-                    (bool status, string message) result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
-
-                    if (result.status)
+                    if (!checkResult.apiKey.IsActivated)
                     {
-                        MessageBox.Show(result.message, "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        btnHideKey.Visible = true;
+                        DialogResult dialog = MessageBox.Show("Lisansý aktifleþtirmek istediðinize emin misiniz?\nLisansý aktifleþtirmek kiralama süresini baþlatacaktýr ve lisans anahtarýný bilgisayarýnýzla eþleþtirecektir.", "Uyarý!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (dialog == DialogResult.Yes)
+                        {
 
-                        lblLicenseKey.Text = licenseKey;
-                        label1.Visible = false;
-                        mskLicenseKey.Visible = false;
-                        btnActivateLicense.Visible = false;
-                        btnInjectBot.Visible = true;
-                        lblRemaining.Visible = true;
+                            //TODO: API Request
+                            (bool status, string message) result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
+
+                            if (result.status)
+                            {
+                                MessageBox.Show(result.message, "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                btnHideKey.Visible = true;
+
+                                (ApiKey? apiKey, string message) activateResult = await ApiProcessor.CheckLicense(licenseKey);
+
+                                lblLicenseKey.Text = licenseKey;
+                                label1.Visible = false;
+                                mskLicenseKey.Visible = false;
+                                btnActivateLicense.Visible = false;
+                                btnInjectBot.Visible = true;
+
+                                if (activateResult.apiKey is not null)
+                                {
+                                    lblRemaining.Visible = true;
+                                    lblRemaining.Text = $"Lisansin kalan süresi: {activateResult.apiKey.DaysLeft} gün";
+                                }
+                            }
+                            else
+                            {
+                                mskLicenseKey.Clear();
+                                MessageBox.Show(result.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
                     }
                     else
                     {
-                        mskLicenseKey.Clear();
-                        MessageBox.Show(result.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (checkResult.apiKey.DaysLeft < 0)
+                        {
+                            MessageBox.Show("Maalesef ki bu lisans anahtarýnýn süresi dolmuþ. Lütfen yeni bir lisans anahtarý satýn alýnýz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                        else
+                        {
+                            if (checkResult.apiKey.HWID == HWID)
+                            {
+                                MessageBox.Show("Lisans anahtarý baþarýyla etkinleþtirildi. Ýyi oyunlar dileriz!", "Etkinleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                btnHideKey.Visible = true;
+
+                                lblLicenseKey.Text = licenseKey;
+                                label1.Visible = false;
+                                mskLicenseKey.Visible = false;
+                                btnActivateLicense.Visible = false;
+                                btnInjectBot.Visible = true;
+                                lblRemaining.Visible = true;
+                                lblRemaining.Text = $"Lisansin kalan süresi: {checkResult.apiKey.DaysLeft} gün";
+                            }
+                            else
+                            {
+                                MessageBox.Show("Bu lisans anahtarý zaten baþka bir bilgisayara aktifleþtirilmiþ. Eðer bunun bir hata olduðunu düþünüyorsanýz lütfen lisans anahtarýný aldýðýnýz yerle iletiþime geçiniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    mskLicenseKey.Clear();
+                    MessageBox.Show(checkResult.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
             }
             else
             {
