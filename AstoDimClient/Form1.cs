@@ -1,8 +1,10 @@
 using AstoDimClient.ApiLibrary;
 using AstoDimClient.Properties;
 using System.Management;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AstoDimClient
 {
@@ -15,6 +17,15 @@ namespace AstoDimClient
         }
         string licenseKey;
         string HWID;
+        ApiKey? globalKey;
+
+        static DateTime GetDateTime()
+        {
+            DateTime dateTimeNow = ApiProcessor.GetDateTime();
+            if (dateTimeNow == DateTime.MinValue)
+                MessageBox.Show("Sunuculara eriþilemedi. Lütfen internet baðlantýnýzý kontrol ediniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return dateTimeNow;
+        }
 
         static string GetMotherboardID()
         {
@@ -72,6 +83,7 @@ namespace AstoDimClient
                                 btnHideKey.Visible = true;
 
                                 (ApiKey? apiKey, string message) activateResult = await ApiProcessor.CheckLicense(licenseKey);
+                                globalKey = activateResult.apiKey;
 
                                 lblLicenseKey.Text = licenseKey;
                                 label1.Visible = false;
@@ -83,6 +95,7 @@ namespace AstoDimClient
                                 {
                                     lblRemaining.Visible = true;
                                     lblRemaining.Text = $"Lisansin kalan süresi: {activateResult.apiKey.DaysLeft} gün";
+                                    timer1.Enabled = true;
                                 }
                             }
                             else
@@ -94,7 +107,8 @@ namespace AstoDimClient
                     }
                     else
                     {
-                        if (checkResult.apiKey.DaysLeft < 0)
+                        bool isLicenseExpired = checkResult.apiKey.ExpireDate.CompareTo(GetDateTime()) < 0;
+                        if (isLicenseExpired)
                         {
                             MessageBox.Show("Maalesef ki bu lisans anahtarýnýn süresi dolmuþ. Lütfen yeni bir lisans anahtarý satýn alýnýz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
@@ -104,6 +118,7 @@ namespace AstoDimClient
                             {
                                 MessageBox.Show("Lisans anahtarý baþarýyla etkinleþtirildi. Ýyi oyunlar dileriz!", "Etkinleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 btnHideKey.Visible = true;
+                                globalKey = checkResult.apiKey;
 
                                 lblLicenseKey.Text = licenseKey;
                                 label1.Visible = false;
@@ -112,6 +127,7 @@ namespace AstoDimClient
                                 btnInjectBot.Visible = true;
                                 lblRemaining.Visible = true;
                                 lblRemaining.Text = $"Lisansin kalan süresi: {checkResult.apiKey.DaysLeft} gün";
+                                timer1.Enabled = true;
                             }
                             else
                             {
@@ -155,6 +171,38 @@ namespace AstoDimClient
         }
 
         private void frmClientMain_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (globalKey is not null)
+            {
+                int daysRemaining = (globalKey.ExpireDate - GetDateTime()).Days;
+                lblRemaining.Text = $"Lisansin kalan süresi: {daysRemaining} gün";
+                bool isLicenseExpired = globalKey.ExpireDate.CompareTo(GetDateTime()) < 0;
+                if (isLicenseExpired)
+                {
+                    btnHideKey.Visible = false;
+                    globalKey = null;
+
+                    lblLicenseKey.Text = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX";
+                    label1.Visible = true;
+                    mskLicenseKey.Visible = true;
+                    btnActivateLicense.Visible = true;
+                    btnInjectBot.Visible = false;
+                    lblRemaining.Visible = false;
+                    lblRemaining.Text = $"Aktif lisans bulunamadý.";
+                    timer1.Enabled = false;
+
+                    MessageBox.Show("Maalesef ki lisansýnýzýn süresi doldu. Lütfen yeni bir lisans anahtarý satýn alýnýz.", "Uyarý!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+        }
+
+        private void btnInjectBot_Click(object sender, EventArgs e)
         {
 
         }

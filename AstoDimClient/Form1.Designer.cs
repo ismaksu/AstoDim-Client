@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             mskLicenseKey = new MaskedTextBox();
             label1 = new Label();
             label3 = new Label();
@@ -37,6 +38,7 @@
             lblRemaining = new Label();
             btnInjectBot = new ReaLTaiizor.Controls.CyberButton();
             label2 = new Label();
+            timer1 = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
             // mskLicenseKey
@@ -196,6 +198,7 @@
             btnInjectBot.Timer_Effect_1 = 5;
             btnInjectBot.Timer_RGB = 300;
             btnInjectBot.Visible = false;
+            btnInjectBot.Click += btnInjectBot_Click;
             // 
             // label2
             // 
@@ -207,6 +210,11 @@
             label2.Size = new Size(289, 42);
             label2.TabIndex = 16;
             label2.Text = "System Initialization Status: True\r\nCooler Systems: Active\r\nBypassing Security Firewall: Success";
+            // 
+            // timer1
+            // 
+            timer1.Interval = 180000;
+            timer1.Tick += timer1_Tick;
             // 
             // frmClientMain
             // 
@@ -246,5 +254,6 @@
         private Label lblRemaining;
         private ReaLTaiizor.Controls.CyberButton btnInjectBot;
         private Label label2;
+        private System.Windows.Forms.Timer timer1;
     }
 }

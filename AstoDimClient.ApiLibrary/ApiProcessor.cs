@@ -23,8 +23,8 @@ namespace AstoDimClient.ApiLibrary
                         {
                             string result = await response.Content.ReadAsStringAsync();
                             bool statusResult = JsonConvert.DeserializeObject<bool>(result);
-                            return statusResult ? 
-                                (true, "Lisans başarıyla aktifleştirildi.") : 
+                            return statusResult ?
+                                (true, "Lisans başarıyla aktifleştirildi.") :
                                 (false, "Lisans aktifleştirme başarısız oldu. Lütfen lisans anahtarınızı kontrol ediniz.");
                         }
                         else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -41,8 +41,8 @@ namespace AstoDimClient.ApiLibrary
                 {
                     return (false, "Maalesef ki lisanslama sunucularına erişilemedi, lütfen internet bağlantınız olduğundan emin olunuz.");
                 }
-                
-            }   
+
+            }
             return (false, "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
         }
         public static async Task<(ApiKey? apiKey, string message)> CheckLicense(string licenseKey)
@@ -68,7 +68,7 @@ namespace AstoDimClient.ApiLibrary
                         {
                             return (null, "Maalesef ki lisanslama sunucuları tarafında bir hata oluştu. Lütfen tekrar deneyiniz.\nEğer sorun devam ederse lütfen lisans anahtarınızı aldığınız yerle iletişime geçiniz.");
                         }
-                        
+
                     }
                 }
                 catch (Exception)
@@ -76,7 +76,36 @@ namespace AstoDimClient.ApiLibrary
                     return (null, "Maalesef ki lisanslama sunucularına erişilemedi, lütfen internet bağlantınız olduğundan emin olunuz.");
                 }
             }
-            return (null , "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
+            return (null, "Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.");
+        }
+
+        public static DateTime GetDateTime()
+        {
+            DateTime dateTime = DateTime.MinValue;
+            try
+            {
+                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("http://www.microsoft.com");
+                request.Method = "GET";
+                request.Accept = "text/html, application/xhtml+xml, */*";
+                request.UserAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
+                request.ContentType = "application/x-www-form-urlencoded";
+                request.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
+                System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    string todaysDates = response.Headers["date"];
+
+                    dateTime = DateTime.ParseExact(todaysDates, "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+                        System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat, System.Globalization.DateTimeStyles.AssumeUniversal);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error while trying to get the current date and time from the server: " + ex.Message);
+            }
+            
+
+            return dateTime;
         }
     }
 }
