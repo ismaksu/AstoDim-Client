@@ -204,7 +204,7 @@ namespace AstoDimClient
 
         private void btnInjectBot_Click(object sender, EventArgs e)
         {
-
+            InjectionHelper.StartInjection();
         }
     }
 }
