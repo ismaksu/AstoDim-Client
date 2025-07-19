@@ -8,7 +8,7 @@ namespace AstoDimClient
 {
     public class InjectionHelper
     {
-        static string dllPath = Application.StartupPath + @"\injection\mobile2FarmBot.dll";
+        static string dllPath = Application.StartupPath + @"injection\mobile2FarmBot.dll";
         public static void StartInjection()
         {
             if(File.Exists(dllPath))
