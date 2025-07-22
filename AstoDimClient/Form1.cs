@@ -1,4 +1,4 @@
-using AstoDimClient.ApiLibrary;
+ï»¿using AstoDimClient.ApiLibrary;
 using AstoDimClient.Properties;
 using System.Management;
 using System.Net.Http.Headers;
@@ -18,12 +18,13 @@ namespace AstoDimClient
         string licenseKey;
         string HWID;
         ApiKey? globalKey;
+        LicenseKey licenseKeyGlobal;
 
         static DateTime GetDateTime()
         {
             DateTime dateTimeNow = ApiProcessor.GetDateTime();
             if (dateTimeNow == DateTime.MinValue)
-                MessageBox.Show("Sunuculara eriþilemedi. Lütfen internet baðlantýnýzý kontrol ediniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Sunuculara eriÅŸilemedi. LÃ¼tfen internet baÄŸlantÄ±nÄ±zÄ± kontrol ediniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return dateTimeNow;
         }
 
@@ -43,6 +44,133 @@ namespace AstoDimClient
             }
         }
 
+        async void ActivateLicense(bool isFromButton = false)
+        {
+            licenseKey = String.Empty;
+            HWID = GetMotherboardID();
+
+            if (File.Exists(Application.StartupPath + "licensing.json"))
+            {
+                if (licenseKeyGlobal is null)
+                {
+                    if (!mskLicenseKey.MaskFull)
+                    {
+                        MessageBox.Show("LÃ¼tfen doÄŸru bir lisans anahtarÄ± girdiÄŸinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    licenseKey = mskLicenseKey.Text;
+                }
+                else
+                    licenseKey = licenseKeyGlobal.ProductKey;
+            }
+            else if(isFromButton)
+            {
+                if (!mskLicenseKey.MaskFull)
+                {
+                    MessageBox.Show("LÃ¼tfen doÄŸru bir lisans anahtarÄ± girdiÄŸinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                licenseKey = mskLicenseKey.Text;
+            }
+
+
+            (ApiKey? apiKey, string message) checkResult = await ApiProcessor.CheckLicense(licenseKey);
+            if (checkResult.apiKey is not null)
+            {
+                if (!checkResult.apiKey.IsActivated)
+                {
+                    DialogResult dialog = MessageBox.Show("LisansÄ± aktifleÅŸtirmek istediÄŸinize emin misiniz?\nLisansÄ± aktifleÅŸtirmek kiralama sÃ¼resini baÅŸlatacaktÄ±r ve lisans anahtarÄ±nÄ± bilgisayarÄ±nÄ±zla eÅŸleÅŸtirecektir.", "UyarÄ±!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (dialog == DialogResult.Yes)
+                    {
+                        (bool status, string message) result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
+
+                        if (result.status)
+                        {
+                            MessageBox.Show(result.message, "AktifleÅŸtirme BaÅŸarÄ±lÄ±", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            btnHideKey.Visible = true;
+
+                            (ApiKey? apiKey, string message) activateResult = await ApiProcessor.CheckLicense(licenseKey);
+                            globalKey = activateResult.apiKey;
+
+                            LicenseKey licenseKeyGlobal = new LicenseKey
+                            {
+                                ProductKey = checkResult.apiKey.ProductKey
+                            };
+                            JsonHelper.WriteKeyToFile(licenseKeyGlobal);
+
+                            lblLicenseKey.Text = licenseKey;
+                            label1.Visible = false;
+                            mskLicenseKey.Visible = false;
+                            btnActivateLicense.Visible = false;
+                            btnInjectBot.Visible = true;
+
+                            if (activateResult.apiKey is not null)
+                            {
+                                lblRemaining.Visible = true;
+                                lblRemaining.Text = $"Lisansin kalan sÃ¼resi: {activateResult.apiKey.DaysLeft} gÃ¼n";
+                                timer1.Enabled = true;
+                            }
+                        }
+                        else
+                        {
+                            mskLicenseKey.Clear();
+                            JsonHelper.RemoveLicenseFile();
+                            MessageBox.Show(result.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+                else
+                {
+                    bool isLicenseExpired = checkResult.apiKey.ExpireDate.CompareTo(GetDateTime()) < 0;
+                    if (isLicenseExpired)
+                    {
+                        JsonHelper.RemoveLicenseFile();
+                        MessageBox.Show("Maalesef ki bu lisans anahtarÄ±nÄ±n sÃ¼resi dolmuÅŸ. LÃ¼tfen yeni bir lisans anahtarÄ± satÄ±n alÄ±nÄ±z.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        if (checkResult.apiKey.HWID == HWID)
+                        {
+                            MessageBox.Show("Lisans anahtarÄ± baÅŸarÄ±yla etkinleÅŸtirildi. Ä°yi oyunlar dileriz!", "EtkinleÅŸtirme BaÅŸarÄ±lÄ±", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            btnHideKey.Visible = true;
+                            globalKey = checkResult.apiKey;
+
+                            LicenseKey licenseKeyGlobal = new LicenseKey
+                            {
+                                ProductKey = checkResult.apiKey.ProductKey
+                            };
+                            JsonHelper.WriteKeyToFile(licenseKeyGlobal);
+
+                            lblLicenseKey.Text = licenseKey;
+                            label1.Visible = false;
+                            mskLicenseKey.Visible = false;
+                            btnActivateLicense.Visible = false;
+                            btnInjectBot.Visible = true;
+                            lblRemaining.Visible = true;
+                            lblRemaining.Text = $"Lisansin kalan sÃ¼resi: {checkResult.apiKey.DaysLeft} gÃ¼n";
+                            timer1.Enabled = true;
+                        }
+                        else
+                        {
+                            JsonHelper.RemoveLicenseFile();
+                            MessageBox.Show("Bu lisans anahtarÄ± zaten baÅŸka bir bilgisayara aktifleÅŸtirilmiÅŸ. EÄŸer bunun bir hata olduÄŸunu dÃ¼ÅŸÃ¼nÃ¼yorsanÄ±z lÃ¼tfen lisans anahtarÄ±nÄ± aldÄ±ÄŸÄ±nÄ±z yerle iletiÅŸime geÃ§iniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+            else if (isFromButton)
+            {
+                mskLicenseKey.Clear();
+                MessageBox.Show(checkResult.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                mskLicenseKey.Clear();
+                JsonHelper.RemoveLicenseFile();
+            }
+
+        }
+
         private static string GetWmiValue(string className, string property)
         {
             try
@@ -59,94 +187,7 @@ namespace AstoDimClient
 
         private async void btnActivateLicense_Click_1(object sender, EventArgs e)
         {
-            licenseKey = mskLicenseKey.Text;
-            HWID = GetMotherboardID();
-
-
-            if (mskLicenseKey.MaskFull)
-            {
-                (ApiKey? apiKey, string message) checkResult = await ApiProcessor.CheckLicense(licenseKey);
-                if (checkResult.apiKey is not null)
-                {
-                    if (!checkResult.apiKey.IsActivated)
-                    {
-                        DialogResult dialog = MessageBox.Show("Lisansý aktifleþtirmek istediðinize emin misiniz?\nLisansý aktifleþtirmek kiralama süresini baþlatacaktýr ve lisans anahtarýný bilgisayarýnýzla eþleþtirecektir.", "Uyarý!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                        if (dialog == DialogResult.Yes)
-                        {
-
-                            //TODO: API Request
-                            (bool status, string message) result = await ApiProcessor.ActivateLicense(licenseKey, HWID);
-
-                            if (result.status)
-                            {
-                                MessageBox.Show(result.message, "Aktifleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                btnHideKey.Visible = true;
-
-                                (ApiKey? apiKey, string message) activateResult = await ApiProcessor.CheckLicense(licenseKey);
-                                globalKey = activateResult.apiKey;
-
-                                lblLicenseKey.Text = licenseKey;
-                                label1.Visible = false;
-                                mskLicenseKey.Visible = false;
-                                btnActivateLicense.Visible = false;
-                                btnInjectBot.Visible = true;
-
-                                if (activateResult.apiKey is not null)
-                                {
-                                    lblRemaining.Visible = true;
-                                    lblRemaining.Text = $"Lisansin kalan süresi: {activateResult.apiKey.DaysLeft} gün";
-                                    timer1.Enabled = true;
-                                }
-                            }
-                            else
-                            {
-                                mskLicenseKey.Clear();
-                                MessageBox.Show(result.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        bool isLicenseExpired = checkResult.apiKey.ExpireDate.CompareTo(GetDateTime()) < 0;
-                        if (isLicenseExpired)
-                        {
-                            MessageBox.Show("Maalesef ki bu lisans anahtarýnýn süresi dolmuþ. Lütfen yeni bir lisans anahtarý satýn alýnýz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        }
-                        else
-                        {
-                            if (checkResult.apiKey.HWID == HWID)
-                            {
-                                MessageBox.Show("Lisans anahtarý baþarýyla etkinleþtirildi. Ýyi oyunlar dileriz!", "Etkinleþtirme Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                btnHideKey.Visible = true;
-                                globalKey = checkResult.apiKey;
-
-                                lblLicenseKey.Text = licenseKey;
-                                label1.Visible = false;
-                                mskLicenseKey.Visible = false;
-                                btnActivateLicense.Visible = false;
-                                btnInjectBot.Visible = true;
-                                lblRemaining.Visible = true;
-                                lblRemaining.Text = $"Lisansin kalan süresi: {checkResult.apiKey.DaysLeft} gün";
-                                timer1.Enabled = true;
-                            }
-                            else
-                            {
-                                MessageBox.Show("Bu lisans anahtarý zaten baþka bir bilgisayara aktifleþtirilmiþ. Eðer bunun bir hata olduðunu düþünüyorsanýz lütfen lisans anahtarýný aldýðýnýz yerle iletiþime geçiniz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    mskLicenseKey.Clear();
-                    MessageBox.Show(checkResult.message, "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("Lütfen doðru bir lisans anahtarý girdiðinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            ActivateLicense(true);
         }
 
         private void mskLicenseKey_Enter(object sender, EventArgs e)
@@ -172,7 +213,11 @@ namespace AstoDimClient
 
         private void frmClientMain_Load(object sender, EventArgs e)
         {
-
+            if (File.Exists("licensing.json"))
+            {
+                licenseKeyGlobal = JsonHelper.ReadKeyFromFile();
+            }
+            ActivateLicense();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -180,7 +225,7 @@ namespace AstoDimClient
             if (globalKey is not null)
             {
                 int daysRemaining = (globalKey.ExpireDate - GetDateTime()).Days;
-                lblRemaining.Text = $"Lisansin kalan süresi: {daysRemaining} gün";
+                lblRemaining.Text = $"Lisansin kalan sÃ¼resi: {daysRemaining} gÃ¼n";
                 bool isLicenseExpired = globalKey.ExpireDate.CompareTo(GetDateTime()) < 0;
                 if (isLicenseExpired)
                 {
@@ -193,10 +238,10 @@ namespace AstoDimClient
                     btnActivateLicense.Visible = true;
                     btnInjectBot.Visible = false;
                     lblRemaining.Visible = false;
-                    lblRemaining.Text = $"Aktif lisans bulunamadý.";
+                    lblRemaining.Text = $"Aktif lisans bulunamadÄ±.";
                     timer1.Enabled = false;
 
-                    MessageBox.Show("Maalesef ki lisansýnýzýn süresi doldu. Lütfen yeni bir lisans anahtarý satýn alýnýz.", "Uyarý!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Maalesef ki lisansÄ±nÄ±zÄ±n sÃ¼resi doldu. LÃ¼tfen yeni bir lisans anahtarÄ± satÄ±n alÄ±nÄ±z.", "UyarÄ±!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
 
