@@ -9,5 +9,6 @@ namespace AstoDimClient
     public class LicenseKey
     {
         public string ProductKey { get; set; }
+        public string HWID { get; set; }
     }
 }

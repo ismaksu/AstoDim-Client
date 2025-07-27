@@ -56,7 +56,6 @@ namespace AstoDimClient.ApiLibrary
                     using (HttpResponseMessage response = await ApiHelper.ApiClient.GetAsync(url))
                     {
                         var result = await response.Content.ReadAsStringAsync();
-                        var result1 = result.ToString();
                         try
                         {
                             ApiKey? apiKey = JsonConvert.DeserializeObject<ApiKey>(result);

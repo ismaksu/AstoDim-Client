@@ -94,7 +94,8 @@ namespace AstoDimClient
 
                             LicenseKey licenseKeyGlobal = new LicenseKey
                             {
-                                ProductKey = checkResult.apiKey.ProductKey
+                                ProductKey = checkResult.apiKey.ProductKey,
+                                HWID = HWID
                             };
                             JsonHelper.WriteKeyToFile(licenseKeyGlobal);
 
@@ -137,7 +138,8 @@ namespace AstoDimClient
 
                             LicenseKey licenseKeyGlobal = new LicenseKey
                             {
-                                ProductKey = checkResult.apiKey.ProductKey
+                                ProductKey = checkResult.apiKey.ProductKey,
+                                HWID = HWID
                             };
                             JsonHelper.WriteKeyToFile(licenseKeyGlobal);
 
