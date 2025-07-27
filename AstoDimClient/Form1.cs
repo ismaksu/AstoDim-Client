@@ -46,6 +46,7 @@ namespace AstoDimClient
 
         async void ActivateLicense(bool isFromButton = false)
         {
+            btnActivateLicense.Enabled = false;
             licenseKey = String.Empty;
             HWID = GetMotherboardID();
 
@@ -56,6 +57,7 @@ namespace AstoDimClient
                     if (!mskLicenseKey.MaskFull)
                     {
                         MessageBox.Show("Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        btnActivateLicense.Enabled = true;
                         return;
                     }
                     licenseKey = mskLicenseKey.Text;
@@ -63,11 +65,12 @@ namespace AstoDimClient
                 else
                     licenseKey = licenseKeyGlobal.ProductKey;
             }
-            else if(isFromButton)
+            else if (isFromButton)
             {
                 if (!mskLicenseKey.MaskFull)
                 {
                     MessageBox.Show("Lütfen doğru bir lisans anahtarı girdiğinizden emin olunuz.", "Hata!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    btnActivateLicense.Enabled = true;
                     return;
                 }
                 licenseKey = mskLicenseKey.Text;
@@ -170,7 +173,7 @@ namespace AstoDimClient
                 mskLicenseKey.Clear();
                 JsonHelper.RemoveLicenseFile();
             }
-
+            btnActivateLicense.Enabled = true;
         }
 
         private static string GetWmiValue(string className, string property)
@@ -185,11 +188,6 @@ namespace AstoDimClient
             }
             catch { }
             return "null";
-        }
-
-        private async void btnActivateLicense_Click_1(object sender, EventArgs e)
-        {
-            ActivateLicense(true);
         }
 
         private void mskLicenseKey_Enter(object sender, EventArgs e)
@@ -249,7 +247,32 @@ namespace AstoDimClient
 
         }
 
-        private void btnInjectBot_Click(object sender, EventArgs e)
+        private void btnActivateLicense_Click(object sender, EventArgs e)
+        {
+            ActivateLicense(true);
+        }
+
+        private void btnActivateLicense_MouseEnter(object sender, EventArgs e)
+        {
+            btnActivateLicense.BackgroundImage = Resources.pipis2;
+        }
+
+        private void btnActivateLicense_MouseLeave(object sender, EventArgs e)
+        {
+            btnActivateLicense.BackgroundImage = Resources.pipis;
+        }
+
+        private void btnInjectBot_MouseEnter(object sender, EventArgs e)
+        {
+            btnInjectBot.BackgroundImage = Resources.popos21;
+        }
+
+        private void btnInjectBot_MouseLeave(object sender, EventArgs e)
+        {
+            btnInjectBot.BackgroundImage = Resources.popos1;
+        }
+
+        private void btnInjectBot_Click_1(object sender, EventArgs e)
         {
             InjectionHelper.StartInjection();
         }
