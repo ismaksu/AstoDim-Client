@@ -113,29 +113,9 @@ namespace AstoDimClient.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap popos {
-            get {
-                object obj = ResourceManager.GetObject("popos", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap popos1 {
             get {
                 object obj = ResourceManager.GetObject("popos1", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap popos2 {
-            get {
-                object obj = ResourceManager.GetObject("popos2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

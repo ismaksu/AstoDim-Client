@@ -136,9 +136,6 @@
   <data name="see_eye_visible_icon_1878261" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\see_eye_visible_icon_1878261.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="popos" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\popos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="3844476-eye-see-show-view-watch_110339" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\3844476-eye-see-show-view-watch_110339.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -156,9 +153,6 @@
   </data>
   <data name="pipis2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pipis2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="popos2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\popos2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="eye_see_look_vision_visibility_icon_196494" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\eye_see_look_vision_visibility_icon_196494.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
