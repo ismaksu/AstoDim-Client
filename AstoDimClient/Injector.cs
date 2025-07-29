@@ -46,38 +46,34 @@ namespace AstoDimClient
         {
             try
             {
-                Process targetProcess = Process.GetProcessesByName("mobilemmo-Win64-Shipping")[0];
+                var targetProcesses = Process.GetProcessesByName("mobilemmo-Win64-Shipping");
+                if (targetProcesses.Length == 0)
+                {
+                    MessageBox.Show("Mobile2 Global bulunamadı.\nBotu enjekte etmek için Mobile2 Global'in açık olması gerekmektedir.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-                // geting the handle of the process - with required privileges
-                IntPtr procHandle = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, targetProcess.Id);
-
-                // searching for the address of LoadLibraryA and storing it in a pointer
-                IntPtr loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
-
-                // name of the dll we want to inject
-                //string dllName = "mobile2FarmBot.dll";
-
-                // alocating some memory on the target process - enough to store the name of the dll
-                // and storing its address in a pointer
-                IntPtr allocMemAddress = VirtualAllocEx(procHandle, IntPtr.Zero, (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-
-                // writing the name of the dll there
-                UIntPtr bytesWritten;
-                WriteProcessMemory(procHandle, allocMemAddress, Encoding.Default.GetBytes(dllPath), (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), out bytesWritten);
-
-                // creating a thread that will call LoadLibraryA with allocMemAddress as argument
-                CreateRemoteThread(procHandle, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
+                foreach (var targetProcess in targetProcesses)
+                {
+                    try
+                    {
+                        IntPtr procHandle = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, targetProcess.Id);
+                        IntPtr loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
+                        IntPtr allocMemAddress = VirtualAllocEx(procHandle, IntPtr.Zero, (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                        UIntPtr bytesWritten;
+                        WriteProcessMemory(procHandle, allocMemAddress, Encoding.Default.GetBytes(dllPath), (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), out bytesWritten);
+                        CreateRemoteThread(procHandle, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
+                    }
+                    catch (Exception exInner)
+                    {
+                        MessageBox.Show($"Injection failed for process ID {targetProcess.Id}. Error message: {exInner.Message}");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                if (ex is IndexOutOfRangeException)
-                {
-                    MessageBox.Show("Mobile2 Global bulunamadı.\nBotu enjekte etmek için Mobile2 Global'in açık olması gerekmektedir.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                    MessageBox.Show("Injection failed. Error message: " + ex.Message);
+                MessageBox.Show("Injection failed. Error message: " + ex.Message);
             }
-
         }
     }
 }
